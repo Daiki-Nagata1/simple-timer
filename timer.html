@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>シンプルタイマー</title>
+    <!-- Tailwind CSS (デザイン用) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .timer-glow {
+            text-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+        }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen flex items-center justify-center p-4">
+
+    <div class="bg-white p-8 rounded-3xl shadow-xl w-full max-w-sm text-center border border-slate-100">
+        <h1 class="text-slate-400 text-sm font-bold uppercase tracking-widest mb-6">Timer App</h1>
+        
+        <!-- Timer Display -->
+        <div id="display" class="text-7xl font-bold text-slate-800 mb-8 timer-glow font-mono">
+            05:00
+        </div>
+
+        <!-- Input Area -->
+        <div class="mb-8 flex items-center justify-center gap-2">
+            <input type="number" id="minutesInput" value="5" min="1" max="999" 
+                class="w-20 text-center text-xl p-2 border-2 border-slate-200 rounded-xl focus:border-blue-500 focus:outline-none transition-colors">
+            <span class="text-slate-600 font-medium">分に設定</span>
+        </div>
+
+        <!-- Controls -->
+        <div class="flex flex-col gap-3">
+            <button id="startStopBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-2xl shadow-lg shadow-blue-200 transition-all active:scale-95 text-lg">
+                スタート
+            </button>
+            <div class="flex gap-3">
+                <button id="resetBtn" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-3 rounded-xl transition-all active:scale-95">
+                    リセット
+                </button>
+            </div>
+        </div>
+
+        <!-- Custom Notification Modal -->
+        <div id="modal" class="fixed inset-0 bg-black/50 hidden items-center justify-center p-4 z-50">
+            <div class="bg-white p-8 rounded-2xl shadow-2xl max-w-xs w-full text-center">
+                <div class="text-blue-500 mb-4 flex justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+                </div>
+                <h2 class="text-xl font-bold text-slate-800 mb-2">時間です！</h2>
+                <p class="text-slate-600 mb-6">タイマーが終了しました。</p>
+                <button id="closeModal" class="w-full bg-slate-800 text-white py-3 rounded-xl font-bold">閉じる</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let timeLeft = 300; // 初期値：5分
+        let timerId = null;
+        let isRunning = false;
+
+        const display = document.getElementById('display');
+        const minutesInput = document.getElementById('minutesInput');
+        const startStopBtn = document.getElementById('startStopBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const modal = document.getElementById('modal');
+        const closeModal = document.getElementById('closeModal');
+
+        function updateDisplay() {
+            const m = Math.floor(timeLeft / 60);
+            const s = timeLeft % 60;
+            display.textContent = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+            
+            if (timeLeft < 10 && timeLeft > 0) {
+                display.classList.add('text-red-500');
+            } else {
+                display.classList.remove('text-red-500');
+            }
+        }
+
+        function startTimer() {
+            if (isRunning) return;
+            isRunning = true;
+            startStopBtn.textContent = 'ストップ';
+            startStopBtn.classList.replace('bg-blue-600', 'bg-orange-500');
+            startStopBtn.classList.replace('hover:bg-blue-700', 'hover:bg-orange-600');
+            
+            timerId = setInterval(() => {
+                timeLeft--;
+                updateDisplay();
+                if (timeLeft <= 0) {
+                    stopTimer();
+                    showModal();
+                }
+            }, 1000);
+        }
+
+        function stopTimer() {
+            isRunning = false;
+            clearInterval(timerId);
+            timerId = null;
+            startStopBtn.textContent = 'スタート';
+            startStopBtn.classList.replace('bg-orange-500', 'bg-blue-600');
+            startStopBtn.classList.replace('hover:bg-orange-600', 'hover:bg-blue-700');
+        }
+
+        function showModal() {
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        startStopBtn.addEventListener('click', () => {
+            if (isRunning) {
+                stopTimer();
+            } else {
+                startTimer();
+            }
+        });
+
+        resetBtn.addEventListener('click', () => {
+            stopTimer();
+            timeLeft = parseInt(minutesInput.value) * 60;
+            updateDisplay();
+        });
+
+        minutesInput.addEventListener('change', () => {
+            if (!isRunning) {
+                timeLeft = parseInt(minutesInput.value) * 60;
+                updateDisplay();
+            }
+        });
+
+        closeModal.addEventListener('click', () => {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        });
+
+        updateDisplay();
+    </script>
+</body>
+</html>
